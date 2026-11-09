@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#eee5f7">
+<title>My Little Planner ♡</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+:root{--ink:#746187;--muted:#a99bb8;--line:#e8def0;--lav:#b6a1d0;--paper:rgba(255,255,255,.82)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:22px 14px 40px;color:var(--ink);font-family:'DM Sans','Noto Sans SC',sans-serif;font-weight:300;background:radial-gradient(ellipse at 15% 12%,#fff9ff 0,transparent 34%),radial-gradient(ellipse at 90% 80%,#e5d9f2 0,transparent 38%),linear-gradient(145deg,#f5effa,#e9def3);background-attachment:fixed}
+body:before{content:"✿　　·　　❀　　　　✧　　　　　✿";position:fixed;top:13px;left:4%;right:4%;color:#b7a5cf;opacity:.55;letter-spacing:8px;font-size:17px;pointer-events:none}
+.wrap{width:min(100%,620px);margin:auto;position:relative}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 8px 18px}
+h1{font-size:clamp(32px,8vw,48px);font-weight:300;font-style:italic;letter-spacing:1px;margin:0;color:#8974a7}
+.sub{font-size:11px;letter-spacing:2px;color:#ac9cbb;margin-top:5px}
+.flower{font-size:40px;color:#a995c5;opacity:.8}
+.card{background:var(--paper);border:1px solid rgba(255,255,255,.9);border-radius:22px;padding:20px;margin:12px 0;box-shadow:0 8px 28px rgba(111,86,139,.07);backdrop-filter:blur(8px)}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h2{font-size:18px;font-weight:400;margin:0;color:#8b77a7}
+input,textarea{font:300 15px 'DM Sans','Noto Sans SC',sans-serif;color:#62556f;background:#fcfaff;border:1px solid #e9e0f0;border-radius:12px;padding:12px;outline:none;width:100%}
+input:focus,textarea:focus{border-color:#b6a1d0;box-shadow:0 0 0 3px #eee6f5}
+input[type=date]{width:auto;max-width:155px;color:#87759d}
+.progress{height:6px;border-radius:10px;background:#eee7f4;margin:17px 0 12px;overflow:hidden}
+.bar{height:100%;width:0;background:linear-gradient(90deg,#b9a5d2,#9f8abc);border-radius:10px;transition:width .2s}
+.count{font-size:12px;color:#a394b4;white-space:nowrap}
+.task{display:flex;align-items:center;gap:11px;padding:12px 2px;border-bottom:1px solid #f0eaf4;min-height:49px}
+.task:last-of-type{border-bottom:0}
+.task input[type=checkbox]{appearance:none;width:19px;height:19px;min-width:19px;border:1.4px solid #a995c0;border-radius:50%;padding:0;background:transparent;cursor:pointer}
+.task input[type=checkbox]:checked{background:#a995c0;box-shadow:inset 0 0 0 4px #fff}
+.task span{font-size:15px;flex:1;overflow-wrap:anywhere}
+.task.done span{text-decoration:line-through;color:#b9afc3}
+.delete{border:0;background:none;color:#b6a9c2;font-size:20px;padding:2px 7px;cursor:pointer}
+.addrow{display:flex;gap:8px;margin-top:14px}
+button{font:400 14px 'DM Sans','Noto Sans SC',sans-serif;cursor:pointer;border:0;border-radius:12px;padding:11px 15px;color:white;background:#a995c2;white-space:nowrap}
+button:active{transform:scale(.98)}
+button.secondary{background:#f0e9f6;color:#8c79a5}
+textarea{resize:vertical;min-height:82px;line-height:1.7;margin-top:13px}
+.goal textarea{min-height:65px}
+.footer{text-align:center;color:#ad9fba;font-size:11px;letter-spacing:1px;padding:14px 0 0}
+.small-action{font-size:12px;color:#a293b2;background:none;padding:5px}
+@media(min-width:600px){body{padding-top:35px}.card{padding:24px}.task{padding:14px 3px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header>
+ <div><h1>To Do List ♡</h1><div class="sub">A LITTLE PROGRESS EVERY DAY</div></div>
+ <div class="flower" aria-hidden="true">✿</div>
+</header>
+<section class="card">
+ <div class="topline"><h2>Today's Plan</h2><input id="date" type="date" aria-label="选择日期"></div>
+ <div class="progress"><div class="bar" id="bar"></div></div>
+ <div class="topline"><span class="count" id="count">0 / 0 completed</span><button class="small-action" id="clear">清除已完成</button></div>
+ <div id="tasks"></div>
+ <form class="addrow" id="addForm"><input id="newTask" maxlength="100" placeholder="写下一件想完成的小事…" autocomplete="off"><button type="submit">＋ 添加</button></form>
+</section>
+<section class="card goal">
+ <h2>Today's Goal ✧</h2>
+ <textarea id="goal" placeholder="今天最想完成的一件事…"></textarea>
+</section>
+<section class="card">
+ <h2>Little Memo ♡</h2>
+ <textarea id="memo" placeholder="记录灵感、心情和其他小事情…"></textarea>
+</section>
+<div class="footer">✿　SLOW DOWN · BLOOM AT YOUR OWN PACE　✿</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
+$('date').value=today();
+let state={};
+const key=()=>'little-planner-'+$('date').value;
+function load(){try{state=JSON.parse(localStorage.getItem(key()))||{tasks:[],goal:'',memo:''}}catch{state={tasks:[],goal:'',memo:''}};render()}
+function save(){localStorage.setItem(key(),JSON.stringify(state));}
+function render(){
+ $('tasks').innerHTML='';
+ state.tasks.forEach((t,i)=>{
+  const row=document.createElement('div');row.className='task'+(t.done?' done':'');
+  const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!t.done;cb.setAttribute('aria-label','完成 '+t.text);
+  cb.addEventListener('change',()=>{t.done=cb.checked;save();render()});
+  const span=document.createElement('span');span.textContent=t.text;
+  const del=document.createElement('button');del.className='delete';del.type='button';del.textContent='×';del.setAttribute('aria-label','删除事项');del.addEventListener('click',()=>{state.tasks.splice(i,1);save();render()});
+  row.append(cb,span,del);$('tasks').append(row);
+ });
+ const done=state.tasks.filter(t=>t.done).length,total=state.tasks.length;
+ $('count').textContent=`${done} / ${total} completed`;
+ $('bar').style.width=(total?done/total*100:0)+'%';
+ $('goal').value=state.goal;$('memo').value=state.memo;
+}
+$('addForm').addEventListener('submit',e=>{e.preventDefault();const v=$('newTask').value.trim();if(!v)return;state.tasks.push({text:v,done:false});$('newTask').value='';save();render()});
+$('clear').addEventListener('click',()=>{state.tasks=state.tasks.filter(t=>!t.done);save();render()});
+$('goal').addEventListener('input',()=>{state.goal=$('goal').value;save()});
+$('memo').addEventListener('input',()=>{state.memo=$('memo').value;save()});
+$('date').addEventListener('change',load);
+load();
+</script>
+</body>
+</html>
